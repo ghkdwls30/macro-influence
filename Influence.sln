@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.62
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Influence", "Influence\Influence.csproj", "{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		INM|Any CPU = INM|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.INM|Any CPU.ActiveCfg = INM 1.0v|Any CPU
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.INM|Any CPU.Build.0 = INM 1.0v|Any CPU
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60CDBAD3-0073-43E6-BFDB-8CFCEA7B8F2D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {222D9A5E-27B8-45C5-892A-8635CB661E7F}
+	EndGlobalSection
+EndGlobal
