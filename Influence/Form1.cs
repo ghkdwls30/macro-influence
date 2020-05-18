@@ -413,7 +413,7 @@ namespace Influence
                             while (IsElementPresent(By.CssSelector(".MoreButton__root___knmp1")) && elements.Count < workCnt)
                             {
                                 driver.FindElement(By.CssSelector(".MoreButton__root___knmp1")).Click();
-                                Thread.Sleep(getRandomRangeProperty("more.click.delay"));
+                                Thread.Sleep(getRandomRangeProperty("more.click.delay") * 1000);
 
                                 elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
 
