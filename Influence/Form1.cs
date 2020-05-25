@@ -575,7 +575,8 @@ namespace Influence
                                 Console.WriteLine("[INFO] 아이피 변경 시작");
 
                                 while (true) {
-                                    ChangeIP();                                    
+                                    ChangeIP();
+                                    ip = GetExternalIPAddress();
                                     int reuseSecond = getIntProperty("ip.reuse.minutes");
                                     if (reuseSecond > 0) {
                                         List<IpHistory> ipHistoryList = sqlUtil.selectIpHistory(reuseSecond, ip);
