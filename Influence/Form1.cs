@@ -418,11 +418,11 @@ namespace Influence
                                 elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
 
                                 // 더보기를 눌러도 동작하지 않는 상황
-                                if (elements.Count == initElementCnt) {
+                                /*if (elements.Count == initElementCnt) {
                                     Console.WriteLine("[ERROR] 이미지가 로드되지 않고 더 보기가 동작하지 않는 것으로 판단하여 닫고 다시시작");
                                     CloseBrowser();
                                     goto LB_START;
-                                }
+                                }*/
                             }
 
                             list = elements.Select(item => item).ToList();
