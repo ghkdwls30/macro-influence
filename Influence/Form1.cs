@@ -612,7 +612,7 @@ namespace Influence
         private bool CheckImageLoad(IReadOnlyCollection<IWebElement> elements)
         {
             foreach (IWebElement element in elements) {
-                string url = element.FindElement(By.CssSelector("ChallengeImage__image___2ryn4")).GetAttribute("src");
+                string url = element.FindElement(By.CssSelector(".ChallengeImage__image___2ryn4")).GetAttribute("src");
                 if (url == null || url.Trim().Length == 0) return false;
             }
             return true;            
