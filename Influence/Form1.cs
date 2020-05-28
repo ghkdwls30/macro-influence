@@ -612,11 +612,14 @@ namespace Influence
 
         private bool CheckImageLoad(IReadOnlyCollection<IWebElement> elements)
         {
-            foreach (IWebElement element in elements) {
-                string url = element.FindElement(By.CssSelector(".ChallengeImage__image___2ryn4")).GetAttribute("src");
+            foreach (IWebElement element in elements)
+            {
+                string url = element.FindElement(By.TagName("img")).GetAttribute("src");
                 if (url == null || url.Trim().Length == 0) return false;
+                else return true;
             }
-            return true;            
+
+            return true;
         }
 
         public void ShuffleMe<T>(IList<T> list)
