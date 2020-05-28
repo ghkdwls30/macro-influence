@@ -331,7 +331,8 @@ namespace Influence
 
 
                         Console.WriteLine("[INFO] 키워드 챌린지 탭 클릭");
-                        e = driver.FindElement(By.XPath("//*[@id='app']/div[1]/div/div/div[3]/div/div/a[3]"));
+                        e = driver.FindElement(By.XPath("//*[@id='app']/div[1]/div/div/div[3]/div/div/a[2]"));
+                        
                         e.Click();
 
                         WaitForVisivle(driver, By.CssSelector("#keyword_list"), 10);
