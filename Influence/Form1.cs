@@ -406,8 +406,12 @@ namespace Influence
                             int workCnt = GetRandomValue(hashMinWorkCnt, hashMaxWorkCnt);
                             Console.WriteLine(string.Format("[INFO] 해시태그 작업량 > {0}", workCnt));
 
+                            WaitForVisivle(driver, By.CssSelector(".ChallengeHistory__area_article___sWmKY"), 30);
+                            Thread.Sleep(1000);
+
                             // 포스팅 엘리먼트
                             elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
+                                                       
 
                             if (!CheckImageLoad(elements)) {
                                 Console.WriteLine("[ERROR] 이미지가 로드되지 않고 더 보기가 동작하지 않는 것으로 판단하여 닫고 다시시작");
@@ -421,7 +425,7 @@ namespace Influence
                             {
                                 driver.FindElement(By.CssSelector(".MoreButton__root___knmp1")).Click();
                                 Thread.Sleep(getRandomRangeProperty("more.click.delay") * 1000);
-
+                                Thread.Sleep(1000);
                                 elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
 
                                 if (!CheckImageLoad(elements))
