@@ -427,7 +427,7 @@ namespace Influence
                                 Thread.Sleep(getRandomRangeProperty("more.click.delay") * 1000);
                                 Thread.Sleep(1000);
                                 elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
-
+                                //
                                 if (!CheckImageLoad(elements))
                                 {
                                     Console.WriteLine("[ERROR] 이미지가 로드되지 않고 더 보기가 동작하지 않는 것으로 판단하여 닫고 다시시작");
