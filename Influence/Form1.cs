@@ -656,7 +656,7 @@ namespace Influence
 
         public static string GetExternalIPAddress()
         {
-            string url = "http://ip.url.kr/";
+            string url = "https://ip.pe.kr/";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
 
