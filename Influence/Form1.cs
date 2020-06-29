@@ -141,6 +141,14 @@ namespace Influence
             }
         }
 
+        private void ScrollTo(int c)
+        {
+            // 스크롤 다운icon-sprite icon-gender-f
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;         
+            js.ExecuteScript(string.Format( "window.scrollBy(0, {0})", c));
+            Thread.Sleep(500);            
+        }
+
         private void Scroll(string script, int c)
         {
             // 스크롤 다운icon-sprite icon-gender-f
@@ -618,6 +626,7 @@ namespace Influence
         {
             foreach (IWebElement element in elements)
             {
+                ScrollTo(element.Location.Y);
                 string url = element.FindElement(By.TagName("img")).GetAttribute("src");
                 if (url == null || url.Trim().Length == 0) return false;
                 else return true;
