@@ -519,9 +519,11 @@ namespace Influence
 
                                     Console.WriteLine("[INFO] 레이어팝업 오픈 대기");
                                     IWebElement frame = null;
+
                                     Console.WriteLine("[INFO] 포스트 클릭 후 대기");
-                                    Thread.Sleep(getRandomRangeProperty("post.click.after.delay"));
-                                    
+                                    Thread.Sleep(getRandomRangeProperty("post.click.after.delay") * 1000);
+                                  
+                                   // Thread.Sleep(1000);
                                     // 레이어 대기 및 스크롤
                                     if (challengeType.Equals("NBLOG") || challengeType.Equals("NPOST") || challengeType.Equals("NTV"))
                                     {
