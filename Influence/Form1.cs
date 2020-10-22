@@ -221,15 +221,18 @@ namespace Influence
             driver.Manage().Cookies.DeleteAllCookies();
         }
 
+        // 문자 프로퍼티 반환
         private string getProperty(string key) {
             return globalConfig[key];
         }
 
+        // 숫자 프로퍼티 반환
         private int getIntProperty(string key)
         {
             return int.Parse(globalConfig[key]);
         }
 
+        // 최소-최대 레인지 반환
         private int[] getRangeProperty(string key)
         {
             int[] r = new int[2];
@@ -238,6 +241,7 @@ namespace Influence
             return r;
         }
 
+        // 최소-최대 프로퍼티에서 랜덤한값 추출 반환  
         private int getRandomRangeProperty(string key)
         {
             int[] r = new int[2];
@@ -373,7 +377,7 @@ namespace Influence
 
                         Console.WriteLine("[INFO] 설정된 키워드 : {0}", string.Join(",", hashNms));
 
-                        List<IWebElement> list = null;
+                        List<String> list = null;
 
                         if (keywordElements.Count == 0)
                         {
@@ -418,7 +422,7 @@ namespace Influence
                             Thread.Sleep(1000);
 
                             // 포스팅 엘리먼트
-                            elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
+                            elements = driver.FindElements(By.CssSelector(".KeywordChallenge__root___qMD-g"));
                                                        
 
                             if (!CheckImageLoad(elements)) {
@@ -444,19 +448,21 @@ namespace Influence
                                 }
                             }
 
-                            list = elements.Select(item => item).ToList();
+                            list = elements.Select(item => item.GetAttribute("id")).ToList();
 
                             if (elements.Count > workCnt)
                             {
-                                list = elements.Take(workCnt).ToList();
+                                list = elements.Take(workCnt).Select( item => item.GetAttribute("id")).ToList();
                             }
 
 
                             try
                             {
 
-                                foreach (IWebElement element in list)
+                                foreach (String id in list)
                                 {
+                                    IWebElement element = driver.FindElement(By.Id(id));
+                                    //IWebElement rootElemnet = element.FindElement(By.XPath("//select[@name='day']//ancestor::div[contains(@id, '" + id + "')]"));
 
                                     // NBLOG : 블로그
                                     // INSTAGRAM : 인스타그램
@@ -513,9 +519,9 @@ namespace Influence
 
                                     Console.WriteLine("[INFO] 레이어팝업 오픈 대기");
                                     IWebElement frame = null;
-
-                                    //Thread.Sleep(2000);
-
+                                    Console.WriteLine("[INFO] 포스트 클릭 후 대기");
+                                    Thread.Sleep(getRandomRangeProperty("post.click.after.delay"));
+                                    
                                     // 레이어 대기 및 스크롤
                                     if (challengeType.Equals("NBLOG") || challengeType.Equals("NPOST") || challengeType.Equals("NTV"))
                                     {
@@ -560,8 +566,11 @@ namespace Influence
                                     driver.SwitchTo().DefaultContent();
 
                                     Console.WriteLine("[INFO] 레이어 닫기");
-                                    e = driver.FindElement(By.CssSelector(".ContentEnd__close___2ILuX"));
-                                    e.Click();
+
+                                    // 닫기버튼이 사라져서 뒤로가기로 변경
+                                    //e = driver.FindElement(By.CssSelector(".ContentEnd__close___2ILuX"));
+                                    //e.Click();
+                                    driver.Navigate().Back();
 
                                     Thread.Sleep(250);
 
