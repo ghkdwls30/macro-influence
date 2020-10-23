@@ -118,6 +118,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config\License.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Config\System_Config.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

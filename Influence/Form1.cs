@@ -13,6 +13,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -23,6 +25,9 @@ namespace Influence
 {
     public partial class Form1 : Form
     {
+
+
+
         IWebDriver driver;
         Thread browserWorker;
         string configFilePath = Application.StartupPath + @"\Config\System_Config.txt";
@@ -31,6 +36,10 @@ namespace Influence
         List<string> userAgentList = new List<string>();
         private DataTable dt;
         //string userListPath = Application.StartupPath + @"\Config\User_List.txt";
+        // 라이센스
+        string license = System.IO.File.ReadAllLines(Application.StartupPath + @"\Config\License.txt")[0];
+        // 라이센스키
+        string LICENSE_KEY = "rg9gDHJtjfpuJ4FZ";
 
         private SqlUtil sqlUtil = new SqlUtil();
 
@@ -38,6 +47,7 @@ namespace Influence
         {
             InitializeComponent();
             init();
+      
         }
 
         private void init()
@@ -85,8 +95,9 @@ namespace Influence
                 }
             }
 
+            // 라이센스복호화
+            license = AESDecrypt128(license, LICENSE_KEY);
 
-          
 
         }
 
@@ -251,7 +262,10 @@ namespace Influence
         }
 
         private void Run() {
-            
+
+            // 라이센스 체크
+            isValidLicense();
+
             //int loopCnt = int.Parse(globalConfig["loop.count"]);
             int hashMinWorkCnt = int.Parse(globalConfig["hash.work.cnt"].Split('-')[0]);
             int hashMaxWorkCnt = int.Parse(globalConfig["hash.work.cnt"].Split('-')[1]);            
@@ -773,10 +787,77 @@ namespace Influence
             
         }
 
+        public List<string> GetMacAddr()
+        {
+
+            List<string> list = new List<string>();
+
+            foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                list.Add(networkInterface.GetPhysicalAddress().ToString());
+            }
+
+            return list;
+        }
+
+
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             
         }
+
+        //AE_S128 복호화
+        public String AESDecrypt128(String Input, String key)
+        {
+            RijndaelManaged RijndaelCipher = new RijndaelManaged();
+
+            byte[] EncryptedData = Convert.FromBase64String(Input);
+            byte[] Salt = Encoding.ASCII.GetBytes(key.Length.ToString());
+
+            PasswordDeriveBytes SecretKey = new PasswordDeriveBytes(key, Salt);
+            ICryptoTransform Decryptor = RijndaelCipher.CreateDecryptor(SecretKey.GetBytes(32), SecretKey.GetBytes(16));
+            MemoryStream memoryStream = new MemoryStream(EncryptedData);
+            CryptoStream cryptoStream = new CryptoStream(memoryStream, Decryptor, CryptoStreamMode.Read);
+
+            byte[] PlainText = new byte[EncryptedData.Length];
+
+            int DecryptedCount = cryptoStream.Read(PlainText, 0, PlainText.Length);
+
+            memoryStream.Close();
+            cryptoStream.Close();
+
+            string DecryptedData = Encoding.Unicode.GetString(PlainText, 0, DecryptedCount);
+
+            return DecryptedData;
+        }
+
+        public void isValidLicense()
+        {
+
+            if (license.Length == 0)
+            {
+                throw new Exception("License Not Vaild!");
+            }
+            string[] licenseArr = license.Split('^');
+            if (licenseArr.Length != 3)
+            {
+                throw new Exception("License Not Vaild!");
+            }
+            if (!licenseArr[0].Equals("INF"))
+            {
+                throw new Exception("License Not Vaild!");
+            }
+            if (!GetMacAddr().Contains(licenseArr[1]))
+            {
+                throw new Exception("License Not Vaild!");
+            }
+            if (licenseArr[2].CompareTo(DateTime.Now.ToString("yyyyMMddHHmmss")) < 0)
+            {
+                throw new Exception("License Not Vaild!");
+            }
+        }
     }
+
+
     
 }
