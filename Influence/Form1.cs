@@ -422,7 +422,12 @@ namespace Influence
                             //Console.WriteLine("▶ 해시태그 클릭");
                             //IWebElement hashTag = list[new Random().Next(list.Count)];
                             actions = new Actions(driver);
-                            actions.MoveToElement(hashElement).Click().Perform();
+                            actions = actions.MoveToElement(hashElement);
+                            
+                            // 이동이 늦는 문제로 이동 후 2초 대기시간 부여
+                            Thread.Sleep(5000);
+
+                            actions.Click().Perform();
 
                             Thread.Sleep(2000);
 
@@ -452,7 +457,7 @@ namespace Influence
                                 driver.FindElement(By.CssSelector(".MoreButton__root___knmp1")).Click();
                                 Thread.Sleep(getRandomRangeProperty("more.click.delay") * 1000);
                                 Thread.Sleep(1000);
-                                elements = driver.FindElements(By.CssSelector(".ChallengeHistory__area_article___sWmKY"));
+                                elements = driver.FindElements(By.CssSelector(".KeywordChallenge__root___qMD-g"));
                                 //
                                 if (!CheckImageLoad(elements))
                                 {

@@ -4,7 +4,7 @@ hash.work.cnt=7-10
 # 아이피 변경 후 대기 시간 (최소-최대 / 초단위)
 ip.change.after.delay=5-5
 # 아이피 변경 여부
-ip.change.use=Y
+ip.change.use=N
 # 아이피 ?분 이내 재사용 (분 단위) -1일 경우 체크하지 않음
 ip.reuse.minutes=-1
 # 포스팅 스크롤 횟수
