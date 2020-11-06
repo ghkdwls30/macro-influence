@@ -47,7 +47,7 @@ namespace Influence
         {
             InitializeComponent();
             init();
-            // 수정한다면 HEAD가 가장 앞선 쏘스가 되겠지?
+            // 수정한다면 HEAD가 가장 앞선 쏘스쓰쓰가 되겠지?
         }
 
         private void init()
