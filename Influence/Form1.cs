@@ -274,12 +274,16 @@ namespace Influence
             int scrollReapeatCntMin = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[0]);
             int scrollReapeatCntMax = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[1]);
 
+            string currentIp = null;
+
+
+            LB_START:
+
             try
             {                
                 while (true)
                 {
-
-                    LB_START:
+                    //LB_START:
 
                     // 오늘 해야할 작업이 남은 유저를 뽑아온다.
                     List<User> userList = sqlUtil.SelectWorkRemainUserList();
@@ -297,10 +301,10 @@ namespace Influence
                     Console.WriteLine(string.Format("[INFO] 접속 에이전트 {0}", userAgent));
                     driver = MakeDriver(false, userAgent);
 
-                    string ip = GetExternalIPAddress();
+                    currentIp = GetExternalIPAddress();
                     Console.WriteLine(string.Format("[INFO] 현재아이피 {0}", GetExternalIPAddress()));
                     // 아이피 삽입
-                    sqlUtil.InsertIpHistory(ip);
+                    sqlUtil.InsertIpHistory(currentIp);
 
                     for (int i = 0; i < userList.Count; i++)
                     {
@@ -612,35 +616,14 @@ namespace Influence
                          }
                     
                         if (i == userList.Count - 1)
-                        {                           
+                        {
                             Console.WriteLine("[INFO] 쿠키 삭제");
                             DeleteCookie();
 
                             Console.WriteLine("[INFO] 브라우저 닫기");
                             CloseBrowser();
 
-                            if (globalConfig["ip.change.use"].Equals("Y"))
-                            {
-                                Console.WriteLine("[INFO] 아이피 변경 시작");
-
-                                while (true) {
-                                    ChangeIP();
-                                    ip = GetExternalIPAddress();
-                                    int reuseSecond = getIntProperty("ip.reuse.minutes");
-                                    if (reuseSecond > 0) {
-                                        List<IpHistory> ipHistoryList = sqlUtil.selectIpHistory(reuseSecond, ip);
-                                        if (ipHistoryList.Count > 0) {
-                                            Console.WriteLine(string.Format("[INFO] {0}분전에 사용된 아이피[{1}] 재변경을 합니다.", reuseSecond, ip));
-                                            continue;
-                                        }
-                                        
-                                    }                                    
-                                    break;
-                                }
-                               
-                                Thread.Sleep(GetRandomValue(ipChangeAfterDelayMin, ipChangeAfterDelayMax) * 1000);
-                                Console.WriteLine(string.Format("[INFO] 변경 아이피 {0}", GetExternalIPAddress()));
-                            }
+                            ChangeIp(ipChangeAfterDelayMin, ipChangeAfterDelayMax, currentIp);
                         }
                     }
                 }
@@ -648,8 +631,41 @@ namespace Influence
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);                
+                Console.WriteLine(e.StackTrace);
+
+                Console.WriteLine("[INFO] 글로벌 익섹셥 발생");
+                ChangeIp(ipChangeAfterDelayMin, ipChangeAfterDelayMax, currentIp);
+                goto LB_START;
             }
+        }
+
+        private void ChangeIp(int ipChangeAfterDelayMin, int ipChangeAfterDelayMax, string ip)
+        {
+            if (globalConfig["ip.change.use"].Equals("Y"))
+            {
+                Console.WriteLine("[INFO] 아이피 변경 시작");
+
+                while (true)
+                {
+                    ChangeIP();
+                    ip = GetExternalIPAddress();
+                    int reuseSecond = getIntProperty("ip.reuse.minutes");
+                    if (reuseSecond > 0)
+                    {
+                        List<IpHistory> ipHistoryList = sqlUtil.selectIpHistory(reuseSecond, ip);
+                        if (ipHistoryList.Count > 0)
+                        {
+                            Console.WriteLine(string.Format("[INFO] {0}분전에 사용된 아이피[{1}] 재변경을 합니다.", reuseSecond, ip));
+                            continue;
+                        }
+
+                    }
+                    break;
+                }
+
+                Thread.Sleep(GetRandomValue(ipChangeAfterDelayMin, ipChangeAfterDelayMax) * 1000);
+                Console.WriteLine(string.Format("[INFO] 변경 아이피 {0}", GetExternalIPAddress()));
+            }            
         }
 
         private bool CheckImageLoad(IReadOnlyCollection<IWebElement> elements)
