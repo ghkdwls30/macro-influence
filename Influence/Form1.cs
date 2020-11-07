@@ -317,7 +317,7 @@ namespace Influence
 
                         Thread.Sleep(500);
 
-                        WaitForVisivle(driver, By.Id("MM_SEARCH_FAKE"), 10);
+                        WaitForVisible(driver, By.Id("MM_SEARCH_FAKE"), 10);
 
 
                         Console.WriteLine("[INFO] 검색어 클릭");
@@ -328,7 +328,7 @@ namespace Influence
                         e = driver.FindElement(By.Id("query"));
                         Thread.Sleep(500);
 
-                        WaitForVisivle(driver, By.Id("query"), 10);
+                        WaitForVisible(driver, By.Id("query"), 10);
 
                         Console.WriteLine("[INFO] 인플루언서 아이디 입력");
                         e.SendKeys(user.nickNm);
@@ -336,7 +336,7 @@ namespace Influence
                         e.SendKeys(OpenQA.Selenium.Keys.Enter);
                         Thread.Sleep(500);
 
-                        WaitForVisivle(driver, By.CssSelector(".influencer_wrap .creator_wrap .user_area"), 10);
+                        WaitForVisible(driver, By.CssSelector(".influencer_wrap .creator_wrap .user_area"), 10);
 
                         Console.WriteLine("[INFO] 프로필 클릭");
                         e = driver.FindElement(By.CssSelector(".influencer_wrap .creator_wrap .user_area"));
@@ -346,7 +346,7 @@ namespace Influence
                         Console.WriteLine("[INFO] 인플루언서 홈 화면 로드 될때 까지 대기");
                         try
                         {
-                            WaitForVisivle(driver, By.CssSelector(".RecentUploadContentImageArticle__root___2MoKg"), 10);
+                            WaitForVisible(driver, By.CssSelector(".RecentUploadContentImageArticle__root___2MoKg"), 10);
                         }
                         catch (Exception ex)
                         {
@@ -365,7 +365,7 @@ namespace Influence
                         
                         e.Click();
 
-                        WaitForVisivle(driver, By.CssSelector("#keyword_list"), 10);
+                        WaitForVisible(driver, By.CssSelector("#keyword_list"), 10);
 
                         Console.WriteLine("[INFO] 키워드 리스트 조회");
 
@@ -441,7 +441,7 @@ namespace Influence
                             int workCnt = GetRandomValue(hashMinWorkCnt, hashMaxWorkCnt);
                             Console.WriteLine(string.Format("[INFO] 해시태그 작업량 > {0}", workCnt));
 
-                            WaitForVisivle(driver, By.CssSelector(".ChallengeHistory__area_article___sWmKY"), 30);
+                            WaitForVisible(driver, By.CssSelector(".ChallengeHistory__area_article___sWmKY"), 30);
                             Thread.Sleep(1000);
 
                             // 포스팅 엘리먼트
@@ -550,7 +550,7 @@ namespace Influence
                                     // 레이어 대기 및 스크롤
                                     if (challengeType.Equals("NBLOG") || challengeType.Equals("NPOST") || challengeType.Equals("NTV"))
                                     {
-                                        WaitForVisivle(driver, By.CssSelector(".ContentEnd__naver_service_iframe___2CHqZ"), 10);
+                                        WaitForVisible(driver, By.CssSelector(".ContentEnd__naver_service_iframe___2CHqZ"), 10);
                                         Thread.Sleep(1000);
                                         frame = driver.FindElement(By.CssSelector(".ContentEnd__naver_service_iframe___2CHqZ"));
                                         executeJS("document.querySelector('.ContentEnd__naver_service_iframe___2CHqZ').setAttribute('name', 'Layer_Frame')");
@@ -566,21 +566,21 @@ namespace Influence
                                     }
                                     else if (challengeType.Equals("INSTAGRAM"))
                                     {
-                                        WaitForVisivle(driver, By.CssSelector(".instagram-media"), 10);
+                                        WaitForVisible(driver, By.CssSelector(".instagram-media"), 10);
                                         Thread.Sleep(1000);
 
                                         Scroll("document.querySelector('.ContentEnd__content___3M7l2').scrollBy(0, 200)", 10);
                                     }
                                     else if (challengeType.Equals("TWITTER"))
                                     {
-                                        WaitForVisivle(driver, By.CssSelector(".twitter-tweet"), 10);
+                                        WaitForVisible(driver, By.CssSelector(".twitter-tweet"), 10);
                                         Thread.Sleep(1000);
 
                                         Scroll("document.querySelector('.ContentEnd__content___3M7l2').scrollBy(0, 200)", 10);
                                     }
                                     else if (challengeType.Equals("YOUTUBE"))
                                     {
-                                        WaitForVisivle(driver, By.CssSelector(".YoutubeEmbed__youtube_iframe___S3Zi0"), GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
+                                        WaitForVisible(driver, By.CssSelector(".YoutubeEmbed__youtube_iframe___S3Zi0"), GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
                                         Thread.Sleep(1000);
 
                                         Scroll("document.querySelector('.ContentEnd__content___3M7l2').scrollBy(0, 200)", GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
@@ -694,10 +694,17 @@ namespace Influence
             }
         }
 
-        private static void WaitForVisivle(IWebDriver driver, By by, int seconds)
+        private void WaitForVisible(IWebDriver driver, By by, int seconds)
         {
-            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds((double)seconds));
-            wait.Until<IWebElement>(ExpectedConditions.ElementExists(by));
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds((double)seconds));
+                wait.Until<IWebElement>(ExpectedConditions.ElementExists(by));
+            }
+            catch (Exception e) {
+                throw e;
+            }
+            
         }
 
 
