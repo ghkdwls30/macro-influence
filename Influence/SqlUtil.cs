@@ -42,7 +42,8 @@ namespace Influence
                      + "WHERE 1 = 1 "
                      + "AND N.USE_YN = 'Y' "
                      + "AND N.WORK_CNT < N.TOT_CNT "
-                     + "AND N.WORK_YMD = strftime('%Y%m%d' ,'now', 'localtime') ";
+                     + "AND N.WORK_YMD = strftime('%Y%m%d' ,'now', 'localtime') "
+                     + "ORDER BY N.WORK_CNT ASC";
 
 
             SQLiteCommand command = new SQLiteCommand(sql, dbConnection);

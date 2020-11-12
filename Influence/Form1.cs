@@ -49,7 +49,6 @@ namespace Influence
         {
             InitializeComponent();
             init();
-            // 수정한다면 HEAD가 가장 앞선 쏘스쓰쓰가 되겠지?
         }
 
         private void init()
@@ -441,10 +440,12 @@ namespace Influence
                             try
                             {
                                 Console.WriteLine("[INFO] 인플루언서 찾기");
-                                element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));
+                                element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));                                
+                                element = element.FindElement(By.CssSelector(".detail_box"));
 
-                                Actions action = new Actions(driver);
-                                action.MoveToElement(element.FindElement(By.CssSelector(".detail_box"))).Click().Perform();
+                                ScrollAt(element.Location.Y - 200);
+
+                                element.Click();
 
                                 WaitForVisible(driver, By.CssSelector(".ContentEnd__profile___3wPJw"), 10);
 
@@ -472,6 +473,10 @@ namespace Influence
                             catch (Exception ex)
                             {
                                 element = driver.FindElement(By.CssSelector(moreCss));
+                                //ScrollAt(element.Location.Y - 100);
+
+                                //Thread.Sleep(1000);
+
                                 element.Click();
                                 moreClickCnt--;
                                 Thread.Sleep(2000);
