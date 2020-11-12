@@ -1,4 +1,6 @@
 ﻿# 설정값의 '=' 좌우로 공백이 없어야 합니다.
+# 인플루언서 모드 (닉네임검색 : N, 키워드검색 : K)
+system.mode=N
 # 해시태그 포스트 작업량 (최소-최대)
 hash.work.cnt=7-10
 # 아이피 변경 후 대기 시간 (최소-최대 / 초단위)
@@ -8,7 +10,7 @@ ip.change.use=N
 # 아이피 ?분 이내 재사용 (분 단위) -1일 경우 체크하지 않음
 ip.reuse.minutes=-1
 # 포스팅 스크롤 횟수
-scroll.reapeat.cnt=10-20
+scroll.reapeat.cnt=3-5
 # 해시키워드 순차클릭 OR 랜덤클릭 여부
 hash.click.random=Y
 # 작업유저가 존재하지 않을 경우 대기 시간 (초 단위)
@@ -16,4 +18,6 @@ user.work.empty.delay=60
 # 더보기 클릭 후 대기 시간(초 단위)
 more.click.delay=5-5
 # 포스팅 클릭 후 대기시간 (최소-최대)
-post.click.after.delay=5-10
+post.click.after.delay=3-5
+# 닉네임모드시 키워드에 (#을 붙일 확률 / 백분률)
+nick.keyword.shap.percentage=50-60

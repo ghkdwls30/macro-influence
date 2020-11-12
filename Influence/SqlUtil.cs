@@ -28,6 +28,85 @@ namespace Influence
             }
         }
 
+        // 남은 닉네임 리스트
+        public List<NickKeyowrd> SelectRemainNickKeywordList()
+        {
+            List<NickKeyowrd> list = new List<NickKeyowrd>();
+
+            SQLiteConnection dbConnection = ConnectionToDB();
+
+            String sql = ""
+                     + "SELECT "
+                     + "* "
+                     + "FROM NICK  N "
+                     + "WHERE 1 = 1 "
+                     + "AND N.USE_YN = 'Y' "
+                     + "AND N.WORK_CNT < N.TOT_CNT "
+                     + "AND N.WORK_YMD = strftime('%Y%m%d' ,'now', 'localtime') ";
+
+
+            SQLiteCommand command = new SQLiteCommand(sql, dbConnection);
+            SQLiteDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                NickKeyowrd n = new NickKeyowrd();
+                n.nickNm = (string)reader["NICK_NM"];
+                n.keyword = (string)reader["KEYWORD"];
+                n.workYmd = (string)reader["WORK_YMD"];
+                list.Add(n);
+            }
+
+            DisconnectionToDB(dbConnection);
+
+            return list;
+        }
+
+        // 닉네임 리스트
+        public List<NickKeyowrd> SelectNickKeywordList(string nickNm, string workYmd)
+        {
+            List<NickKeyowrd> list = new List<NickKeyowrd>();
+
+            SQLiteConnection dbConnection = ConnectionToDB();
+
+            String sql = ""
+                     + "SELECT "
+                     + "* "
+                     + "FROM NICK  N "
+                     + "WHERE 1 = 1 "
+                     + "AND N.USE_YN = 'Y' "
+                     + "AND N.WORK_YMD > strftime('%Y%m%d' ,'now', 'localtime', '-7 day') ";                     
+
+                    if (nickNm != null && nickNm.Trim().Length != 0)
+                    {
+                        sql += "and N.NICK_NM = '" + nickNm + "' ";
+                    }
+
+                    if (workYmd != null && workYmd.Trim().Length != 0)
+                    {
+                        sql += "and N.WORK_YMD = '" + workYmd + "' ";
+                    }
+
+
+            SQLiteCommand command = new SQLiteCommand(sql, dbConnection);
+            SQLiteDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                NickKeyowrd n = new NickKeyowrd();
+                n.nickNm = (string)reader["NICK_NM"];
+                n.keyword = (string)reader["KEYWORD"];
+                n.workYmd = (string)reader["WORK_YMD"];
+                n.totCnt = (long)reader["TOT_CNT"];
+                n.workCnt = (long)reader["WORK_CNT"];
+                list.Add(n);
+            }
+
+            DisconnectionToDB(dbConnection);
+
+            return list;
+        }
+
+
+
         // 작업량이 남은 유저 리스트
         public List<User> SelectWorkRemainUserList()
         {
@@ -208,6 +287,23 @@ namespace Influence
             DisconnectionToDB(dbConnection);
         }
 
+        internal void UpdateNickKeyWordWorkCnt(string workYmd, string nickNm, string keyword)
+        {
+            SQLiteConnection dbConnection = ConnectionToDB();
+
+            String sql = ""
+                    + "UPDATE NICK "
+                    + "SET WORK_CNT = WORK_CNT + 1 "
+                    + "WHERE 1 = 1 "
+                    + " AND WORK_YMD = '" + workYmd + "' "
+                    + " AND NICK_NM = '" + nickNm + "' "
+                    + " AND KEYWORD = '" + keyword.Replace("#", "") + "' ";
+
+            SQLiteCommand command = new SQLiteCommand(sql, dbConnection);
+            command.ExecuteNonQuery();
+
+            DisconnectionToDB(dbConnection);
+        }
     }
 }
 

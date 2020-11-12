@@ -12,6 +12,15 @@ namespace Influence
         public List<Hash> hashList { get; set; }
     }
 
+    class NickKeyowrd
+    {
+        public string nickNm { get; set; }
+        public string keyword { get; set; }
+        public long totCnt { get; set; }
+        public long workCnt { get; set; }
+        public string workYmd { get; set; }
+    }
+
     class Hash
     {
         public string nickNm { get; set; }

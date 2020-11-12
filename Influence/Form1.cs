@@ -40,6 +40,8 @@ namespace Influence
         string license = System.IO.File.ReadAllLines(Application.StartupPath + @"\Config\License.txt")[0];
         // 라이센스키
         string LICENSE_KEY = "rg9gDHJtjfpuJ4FZ";
+        // 모드
+        string mode;
 
         private SqlUtil sqlUtil = new SqlUtil();
 
@@ -68,7 +70,7 @@ namespace Influence
 
             dt.Columns.Add("날짜", typeof(string));
             dt.Columns.Add("닉네임", typeof(string));
-            dt.Columns.Add("해시키워드", typeof(string));
+            dt.Columns.Add("키워드", typeof(string));
             dt.Columns.Add("전체작업량", typeof(int));
             dt.Columns.Add("현재작업량", typeof(int));
 
@@ -78,11 +80,12 @@ namespace Influence
             {
                 for (int i = 0; i < line.Length; i++)
                 {
-                    if (!line[i].StartsWith("#") && line[i].Trim().Length > 0) {
+                    if (!line[i].StartsWith("#") && line[i].Trim().Length > 0)
+                    {
                         string[] c = line[i].Split('=');
                         globalConfig.Add(c[0], c[1]);
                     }
-                }   
+                }
             }
 
             // 유저에이전트
@@ -91,14 +94,20 @@ namespace Influence
             {
                 for (int i = 0; i < line.Length; i++)
                 {
-                    userAgentList.Add(line[i]);                   
+                    userAgentList.Add(line[i]);
                 }
             }
 
             // 라이센스복호화
             license = AESDecrypt128(license, LICENSE_KEY);
 
+            // 모드키워드 하단
+            mode = getProperty("system.mode");
 
+            if ("N".Equals(mode))
+            {
+                label5.Text = "닉네임 모드";
+            }
         }
 
         private IWebDriver MakeDriver()
@@ -160,6 +169,14 @@ namespace Influence
             Thread.Sleep(500);            
         }
 
+        private void ScrollAt(int c)
+        {
+            // 스크롤 다운icon-sprite icon-gender-f
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+            js.ExecuteScript(string.Format("window.scrollTo(0, {0})", c));
+            Thread.Sleep(500);
+        }
+
         private void Scroll(string script, int c)
         {
             // 스크롤 다운icon-sprite icon-gender-f
@@ -168,6 +185,24 @@ namespace Influence
             {
                 js.ExecuteScript(script);
                 Thread.Sleep(500);
+            }
+        }
+
+        private void ScrollByInfinite(int c, int delay)
+        {
+            // 스크롤 다운icon-sprite icon-gender-f
+            long lastScrollHeight = 0;
+            while (true) {
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript(string.Format("window.scrollBy(0, document.body.scrollHeight)", c));
+                Thread.Sleep(delay);
+
+                long currentScrollHeight = (long)js.ExecuteScript("return document.body.scrollHeight");
+
+                if (lastScrollHeight != 0 && currentScrollHeight == lastScrollHeight) {
+                    break;
+                }
+                lastScrollHeight = currentScrollHeight;
             }
         }
 
@@ -265,10 +300,293 @@ namespace Influence
 
             // 라이센스 체크
             isValidLicense();
+            
+            // 키워드 모드
+            if ("K".Equals(mode))
+            {
+                RunKeyWordMode();
+            }
+            // 닉네임 모드
+            else if ("N".Equals(mode))
+            {
+                RunNickNameMode();
+            }
+            else {
+                Console.WriteLine("[ERROR] 존재하지 않는 모드가 입력되었습니다.");
+            }
+
+        }
+
+        // 확률에 의한 랜덤뽑기
+        public bool RandomPick(int count) 
+        {
+            List<bool> l = new List<bool>();
+            for (int i = 0; i < 100; i++) 
+            {
+                if (i <= count)
+                {
+                    l.Add(true);
+                }
+                else {
+                    l.Add(false);
+                }
+            }
+
+            Shuffle(l);
+
+            var index = new Random().Next(l.Count);
+            bool randomItem = l[index];
+
+            return randomItem;
+        }
+
+
+        // 닉네임 작업 모드
+        private void RunNickNameMode()
+        {
+
+            string currentIp = null;
+
+            int ipChangeAfterDelayMin = int.Parse(globalConfig["ip.change.after.delay"].Split('-')[0]);
+            int ipChangeAfterDelayMax = int.Parse(globalConfig["ip.change.after.delay"].Split('-')[1]);
+            int scrollReapeatCntMin = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[0]);
+            int scrollReapeatCntMax = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[1]);
+
+
+
+            LB_START:
+
+            try
+            {
+
+                while (true)
+                {
+                    // 닉네임 리스트를 가져온다.
+                    List<NickKeyowrd> nickKeyowrdList = sqlUtil.SelectRemainNickKeywordList();
+
+                    // 작업대상이 없을 경우
+                    if (nickKeyowrdList.Count == 0)
+                    {
+                        Console.WriteLine("[INFO] 작업을 수행할 대상이 존재하지 않습니다.");
+                        Thread.Sleep(1000 * getIntProperty("user.work.empty.delay"));
+                        continue;
+                    }
+
+                    String userAgent = userAgentList[new Random().Next(userAgentList.Count)];
+                    Console.WriteLine(string.Format("[INFO] 접속 에이전트 {0}", userAgent));
+                    driver = MakeDriver(false, userAgent);
+
+                    currentIp = GetExternalIPAddress();
+                    Console.WriteLine(string.Format("[INFO] 현재아이피 {0}", GetExternalIPAddress()));
+                    // 아이피 삽입
+                    sqlUtil.InsertIpHistory(currentIp);
+
+
+                    // 닉네임 단건만 디스팅트 처리
+                    nickKeyowrdList = nickKeyowrdList.DistinctBy(x => x.nickNm).ToList();
+
+                    // 리스트 셔플
+                    Shuffle(nickKeyowrdList);
+
+
+
+                    for (int i = 0; i < nickKeyowrdList.Count; i++)
+                    {
+
+                        NickKeyowrd nickKeyowrd = nickKeyowrdList[i];
+
+                        Console.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>> 작업 닉네임 [{0}] <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", nickKeyowrd.nickNm);
+
+                        Console.WriteLine("[INFO] 네이버 메인으로 이동");
+                        driver.Navigate().GoToUrl("https://m.naver.com");
+
+                        Thread.Sleep(500);
+
+                        WaitForVisible(driver, By.Id("MM_SEARCH_FAKE"), 10);
+
+
+                        Console.WriteLine("[INFO] 검색어 클릭");
+                        Actions actions = new Actions(driver);
+                        IWebElement e = null;
+                        actions.MoveToElement(driver.FindElement(By.Id("MM_SEARCH_FAKE"))).Click().Perform();
+                        Thread.Sleep(500);
+                        e = driver.FindElement(By.Id("query"));
+                        Thread.Sleep(500);
+
+                        WaitForVisible(driver, By.Id("query"), 10);
+
+                        Console.WriteLine("[INFO] 닉네임 입력");
+
+                        // 확률에 의한 샾 붙이기
+                        if (RandomPick(getRandomRangeProperty("nick.keyword.shap.percentage"))) {
+                            nickKeyowrd.keyword = "#" + nickKeyowrd.keyword;
+                        }
+
+
+                        e.SendKeys(nickKeyowrd.keyword);
+                        Thread.Sleep(500);
+                        e.SendKeys(OpenQA.Selenium.Keys.Enter);
+                        Thread.Sleep(500);
+
+                        WaitForVisible(driver, By.Id("nx_query"), 10);
+
+                        IWebElement element = null;
+
+                        // 인플루언서 찾기
+                        string moreCss = ".keyword_more";
+                        // 최대 클릭 카운트
+                        int moreClickCnt = 2;
+                        while (true)
+                        {
+                            try
+                            {
+                                Console.WriteLine("[INFO] 인플루언서 찾기");
+                                element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));
+
+                                Actions action = new Actions(driver);
+                                action.MoveToElement(element.FindElement(By.CssSelector(".detail_box"))).Click().Perform();
+
+                                WaitForVisible(driver, By.CssSelector(".ContentEnd__profile___3wPJw"), 10);
+
+                                Console.WriteLine("[INFO] 포스트 클릭 후 대기");
+                                Thread.Sleep(getRandomRangeProperty("post.click.after.delay") * 1000);
+
+                                Console.WriteLine("[INFO] 포스트 스크롤링 처리");
+
+                                try
+                                {
+
+                                    driver.FindElement(By.CssSelector(".instagram-media"));
+                                    Scroll("document.querySelector('.ContentEnd__content___3M7l2').scrollBy(0, 200)", GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
+                                    
+                                }
+                                catch
+                                {
+                                    // 아이프레임 전환
+                                    driver.SwitchTo().Frame(0);
+                                    Scroll(GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
+                                }
+
+                                goto LB_END;
+                            }
+                            catch (Exception ex)
+                            {
+                                element = driver.FindElement(By.CssSelector(moreCss));
+                                element.Click();
+                                moreClickCnt--;
+                                Thread.Sleep(2000);
+
+                                // 클릭 2번을 소진하면 브레이크
+                                if (moreClickCnt == 0) break;
+
+                                // 키워드가 #으로 시작하면 break;
+                                // 키워드#으로 할경우 더보기하면 바로 인플루언서 홈으로가고 아닌경우 한번 더보기 되어짐
+                                if (nickKeyowrd.keyword.StartsWith("#"))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("[INFO] 인플루언서 더 찾아보기 클릭");
+                                    moreCss = ".keyword_more._more";
+                                    continue;
+                                }
+                            }
+                        }
+
+                        // 인플루 언서 홈 대기
+                        Console.WriteLine("[INFO] 인플루언서 홈 대기");
+                        WaitForVisible(driver, By.CssSelector(".mod_header_lnb"), 10);
+
+                        // 스크롤 제일 밑에 까지 내리기
+                        Console.WriteLine("[INFO] 무한 스크롤링");
+                        ScrollByInfinite(new Random().Next(4000, 5000), new Random().Next(100, 200));
+
+                        Thread.Sleep(2000);
+
+                        // 인플루언서 찾기
+                        try
+                        {
+                            Console.WriteLine("[INFO] 인플루언서 찾기");
+                            element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));
+                            element = element.FindElement(By.CssSelector(".detail_box"));
+
+                            ScrollAt(element.Location.Y - 200);
+
+
+                                //Actions action = new Actions(driver);
+                                //action = action.MoveToElement(element);
+
+                            //Thread.Sleep(5000);
+
+                            //action.Click().Perform();
+
+                            element.Click();
+
+                            WaitForVisible(driver, By.CssSelector(".ContentEnd__profile___3wPJw"), 10);
+
+                            Console.WriteLine("[INFO] 포스트 클릭 후 대기");
+                            Thread.Sleep(getRandomRangeProperty("post.click.after.delay") * 1000);
+
+
+                            Console.WriteLine("[INFO] 포스트 스크롤링 처리");
+
+                            try
+                            {
+
+                                driver.FindElement(By.CssSelector(".instagram-media"));
+                                Scroll("document.querySelector('.ContentEnd__content___3M7l2').scrollBy(0, 200)", GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
+
+                            }
+                            catch
+                            {
+                                // 아이프레임 전환
+                                driver.SwitchTo().Frame(0);
+                                Scroll(GetRandomValue(scrollReapeatCntMin, scrollReapeatCntMax));
+                            }
+
+                        }
+                        catch
+                        {
+                            Console.WriteLine("[INFO] 인플루언서를 찾을 수 없음");
+                        }
+
+                        LB_END :
+
+                        sqlUtil.UpdateNickKeyWordWorkCnt(nickKeyowrd.workYmd, nickKeyowrd.nickNm, nickKeyowrd.keyword);
+
+                        if (i == nickKeyowrdList.Count - 1)
+                        {
+                            Console.WriteLine("[INFO] 쿠키 삭제");
+                            DeleteCookie();
+
+                            Console.WriteLine("[INFO] 브라우저 닫기");
+                            CloseBrowser();
+
+                            ChangeIp(ipChangeAfterDelayMin, ipChangeAfterDelayMax, currentIp);
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+
+                Console.WriteLine("[INFO] 글로벌 익섹셥 발생");
+                ChangeIp(ipChangeAfterDelayMin, ipChangeAfterDelayMax, currentIp);
+                Console.WriteLine("[INFO] 브라우저 닫기");
+                CloseBrowser();
+                goto LB_START;
+            }
+        }
+
+        // 키워드 작업 모드
+        private void RunKeyWordMode()
+        {
 
             //int loopCnt = int.Parse(globalConfig["loop.count"]);
             int hashMinWorkCnt = int.Parse(globalConfig["hash.work.cnt"].Split('-')[0]);
-            int hashMaxWorkCnt = int.Parse(globalConfig["hash.work.cnt"].Split('-')[1]);            
+            int hashMaxWorkCnt = int.Parse(globalConfig["hash.work.cnt"].Split('-')[1]);
             int ipChangeAfterDelayMin = int.Parse(globalConfig["ip.change.after.delay"].Split('-')[0]);
             int ipChangeAfterDelayMax = int.Parse(globalConfig["ip.change.after.delay"].Split('-')[1]);
             int scrollReapeatCntMin = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[0]);
@@ -280,7 +598,7 @@ namespace Influence
             LB_START:
 
             try
-            {                
+            {
                 while (true)
                 {
                     //LB_START:
@@ -323,7 +641,7 @@ namespace Influence
                         Console.WriteLine("[INFO] 검색어 클릭");
                         Actions actions = new Actions(driver);
                         IWebElement e = null;
-                        actions.MoveToElement(driver.FindElement(By.Id("MM_SEARCH_FAKE"))).Click().Perform();                        
+                        actions.MoveToElement(driver.FindElement(By.Id("MM_SEARCH_FAKE"))).Click().Perform();
                         Thread.Sleep(500);
                         e = driver.FindElement(By.Id("query"));
                         Thread.Sleep(500);
@@ -362,7 +680,7 @@ namespace Influence
 
                         Console.WriteLine("[INFO] 키워드 챌린지 탭 클릭");
                         e = driver.FindElement(By.XPath("//*[@id='app']/div[1]/div/div/div[3]/div/div/a[2]"));
-                        
+
                         e.Click();
 
                         WaitForVisible(driver, By.CssSelector("#keyword_list"), 10);
@@ -427,7 +745,7 @@ namespace Influence
                             //IWebElement hashTag = list[new Random().Next(list.Count)];
                             actions = new Actions(driver);
                             actions = actions.MoveToElement(hashElement);
-                            
+
                             // 이동이 늦는 문제로 이동 후 2초 대기시간 부여
                             Thread.Sleep(5000);
 
@@ -446,14 +764,15 @@ namespace Influence
 
                             // 포스팅 엘리먼트
                             elements = driver.FindElements(By.CssSelector(".KeywordChallenge__root___qMD-g"));
-                                                       
 
-                            if (!CheckImageLoad(elements)) {
+
+                            if (!CheckImageLoad(elements))
+                            {
                                 Console.WriteLine("[ERROR] 이미지가 로드되지 않고 더 보기가 동작하지 않는 것으로 판단하여 닫고 다시시작");
                                 CloseBrowser();
                                 goto LB_START;
                             }
-                            
+
                             int initElementCnt = elements.Count;
                             // 더보기
                             while (IsElementPresent(By.CssSelector(".MoreButton__root___knmp1")) && elements.Count < workCnt)
@@ -475,7 +794,7 @@ namespace Influence
 
                             if (elements.Count > workCnt)
                             {
-                                list = elements.Take(workCnt).Select( item => item.GetAttribute("id")).ToList();
+                                list = elements.Take(workCnt).Select(item => item.GetAttribute("id")).ToList();
                             }
 
 
@@ -545,8 +864,8 @@ namespace Influence
 
                                     Console.WriteLine("[INFO] 포스트 클릭 후 대기");
                                     Thread.Sleep(getRandomRangeProperty("post.click.after.delay") * 1000);
-                                  
-                                   // Thread.Sleep(1000);
+
+                                    // Thread.Sleep(1000);
                                     // 레이어 대기 및 스크롤
                                     if (challengeType.Equals("NBLOG") || challengeType.Equals("NPOST") || challengeType.Equals("NTV"))
                                     {
@@ -605,7 +924,7 @@ namespace Influence
                                 }
 
                             }
-                            catch(Exception ex) 
+                            catch (Exception ex)
                             {
                                 if (ex.GetType().IsInstanceOfType(new OpenQA.Selenium.WebDriverTimeoutException()))
                                 {
@@ -613,8 +932,8 @@ namespace Influence
                                 }
                             }
 
-                         }
-                    
+                        }
+
                         if (i == userList.Count - 1)
                         {
                             Console.WriteLine("[INFO] 쿠키 삭제");
@@ -802,17 +1121,38 @@ namespace Influence
         // 갱신 버튼
         private void button2_Click(object sender, EventArgs e)
         {
-            List<Hash> hashList = sqlUtil.SelectHashList(textBox1.Text, textBox2.Text);
-            dt.Rows.Clear();
-            long sum = 0;
-            foreach (Hash hash in hashList)
+            if ("K".Equals(mode))
             {
-                sum += hash.workCnt;
-                dt.Rows.Add(hash.workYmd, hash.nickNm, hash.hashNm,hash.totCnt, hash.workCnt);
+                List<Hash> hashList = sqlUtil.SelectHashList(textBox1.Text, textBox2.Text);
+                dt.Rows.Clear();
+                long sum = 0;
+                foreach (Hash hash in hashList)
+                {
+                    sum += hash.workCnt;
+                    dt.Rows.Add(hash.workYmd, hash.nickNm, hash.hashNm, hash.totCnt, hash.workCnt);
+                }
+
+                label4.Text = string.Format("{0}", sum);
+            }
+            else if ("N".Equals(mode))
+            {
+                List<NickKeyowrd> nickKeyowrdList = sqlUtil.SelectNickKeywordList(textBox1.Text, textBox2.Text);
+                dt.Rows.Clear();
+                long sum = 0;
+                foreach (NickKeyowrd nickKeyowrd in nickKeyowrdList)
+                {
+                    sum += nickKeyowrd.workCnt;
+                    dt.Rows.Add(nickKeyowrd.workYmd, nickKeyowrd.nickNm, nickKeyowrd.keyword, nickKeyowrd.totCnt, nickKeyowrd.workCnt);
+                }
+
+                label4.Text = string.Format("{0}", sum);
+            }
+            else
+            {
+                Console.WriteLine("[ERROR] 존재하지 않는 모드가 입력되었습니다.");
             }
 
-            label4.Text = string.Format("{0}", sum);
-            
+
         }
 
         public List<string> GetMacAddr()
@@ -884,6 +1224,22 @@ namespace Influence
                 throw new Exception("License Not Vaild!");
             }
         }
+
+        public void Shuffle<T>(List<T> list)
+        {
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+
     }
 
 
