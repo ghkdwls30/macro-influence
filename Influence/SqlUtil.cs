@@ -54,6 +54,9 @@ namespace Influence
                 n.nickNm = (string)reader["NICK_NM"];
                 n.keyword = (string)reader["KEYWORD"];
                 n.workYmd = (string)reader["WORK_YMD"];
+                n.option1 = DBNull.Value.Equals(reader["OPTION1"]) ? "" : (string)reader["OPTION1"];
+                n.option2 = DBNull.Value.Equals(reader["OPTION2"]) ? "" : (string)reader["OPTION2"];
+                n.option3 = DBNull.Value.Equals(reader["OPTION3"]) ? "" : (string)reader["OPTION3"];
                 list.Add(n);
             }
 
@@ -61,6 +64,7 @@ namespace Influence
 
             return list;
         }
+
 
         // 닉네임 리스트
         public List<NickKeyowrd> SelectNickKeywordList(string nickNm, string workYmd)

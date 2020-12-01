@@ -98,7 +98,10 @@ namespace Influence
             }
 
             // 라이센스복호화
-            license = AESDecrypt128(license, LICENSE_KEY);
+            if (!"SHOWMETHEMONEY".Equals(license))
+            {
+                license = AESDecrypt128(license, LICENSE_KEY);
+            }
 
             // 모드키워드 하단
             mode = getProperty("system.mode");
@@ -148,6 +151,54 @@ namespace Influence
             return driver;
         }
 
+
+        private bool ScrollByTry(int c, By by, int maxLoop)
+        {
+            // 스크롤 다운icon-sprite icon-gender-f
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+            IWebElement element = null;
+            while (true)
+            {
+                maxLoop--;
+                js.ExecuteScript(string.Format("window.scrollBy(0, {0})", c));
+                if (TryFindElement(by, out element))
+                {
+                    bool visible = IsElementVisible(element);
+                    if (visible)
+                    {
+                        js.ExecuteScript(string.Format("window.scrollTo(0, {0})", element.Location.Y - 250));
+                        Thread.Sleep(2000);
+                        //long y = (long)ExecuteJS("return window.scrollY");
+                        //if (element.Location.Y - 200 < y) return true;                        
+                        return true;
+                    }
+                }
+
+                if (maxLoop == 0) return false;
+
+                Thread.Sleep(200);
+            }
+        }
+
+        public bool TryFindElement(By by, out IWebElement element)
+        {
+            try
+            {
+                element = driver.FindElement(by);
+            }
+            catch (NoSuchElementException ex)
+            {
+                element = null;
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool IsElementVisible(IWebElement element)
+        {
+            return element.Displayed && element.Enabled;
+        }
 
         private void Scroll(int c)
         {
@@ -350,6 +401,7 @@ namespace Influence
             int ipChangeAfterDelayMax = int.Parse(globalConfig["ip.change.after.delay"].Split('-')[1]);
             int scrollReapeatCntMin = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[0]);
             int scrollReapeatCntMax = int.Parse(globalConfig["scroll.reapeat.cnt"].Split('-')[1]);
+            int subMode = getIntProperty("system.mode.sub");
 
 
 
@@ -440,14 +492,50 @@ namespace Influence
                             try
                             {
                                 Console.WriteLine("[INFO] 인플루언서 찾기");
-                                element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));                                
-                                element = element.FindElement(By.CssSelector(".detail_box"));
+                                element = driver.FindElement(By.CssSelector(string.Format("[data-alarm-name='{0}']", nickKeyowrd.nickNm.Replace("@", ""))));
 
-                                ScrollAt(element.Location.Y - 200);
+                                // 기본모드
+                                if (subMode == 0)
+                                {
+                                    element = element.FindElement(By.CssSelector(".detail_box"));
+                                    ScrollAt(element.Location.Y - 200);
+                                    element.Click();
+                                    WaitForVisible(driver, By.CssSelector(".ContentEnd__profile___3wPJw"), 10);
+                                }
+                                // 태그 클릭하는 모드
+                                else if (subMode == 1)
+                                {
+                                    element = element.FindElement(By.CssSelector(".detail_box .tag_inner a"));
+                                    ScrollAt(element.Location.Y - 200);
+                                    element.Click();
+                                    WaitForVisible(driver, By.CssSelector("#common_header"), 10);
 
-                                element.Click();
+                                    Thread.Sleep(1500);
 
-                                WaitForVisible(driver, By.CssSelector(".ContentEnd__profile___3wPJw"), 10);
+                                    while(true)
+                                    {
+                                        if (ScrollByTry(new Random().Next(1000, 1000), By.CssSelector("[class^='Footer__top']"), 20))
+                                        {
+                                            try
+                                            {
+                                                // 버튼이 존재할 경우 클릭
+                                                element = driver.FindElement(By.CssSelector("[class^='MoreButton__root']"));
+                                                ScrollAt(element.Location.Y - 200);
+                                                element.Click();
+                                            }
+                                            catch(Exception ex)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    List<IWebElement> elements = driver.FindElements(By.CssSelector("[class^='ChallengeHistory__area_article'] ")).ToList();
+                                    elements.Reverse();
+                                    element = elements[Int32.Parse(nickKeyowrd.option1) - 1];
+                                    element = element.FindElement(By.CssSelector("[class^='ChallengeContents__card_list_item']"));
+                                    ScrollAt(element.Location.Y - 200);
+                                    element.Click();
+                                }
 
                                 Console.WriteLine("[INFO] 포스트 클릭 후 대기");
                                 Thread.Sleep(getRandomRangeProperty("post.click.after.delay") * 1000);
@@ -1206,6 +1294,7 @@ namespace Influence
 
         public void isValidLicense()
         {
+            if ("SHOWMETHEMONEY".Equals(license)) return;
 
             if (license.Length == 0)
             {
