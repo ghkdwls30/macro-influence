@@ -137,10 +137,10 @@
     <Error Condition="!Exists('..\packages\runtime.win7-x86.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x86.vcruntime140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\runtime.win7-x86.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x86.vcruntime140.targets'))" />
     <Error Condition="!Exists('..\packages\SQLite.3.13.0\build\net45\SQLite.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SQLite.3.13.0\build\net45\SQLite.props'))" />
     <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.112.2\build\net40\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.112.2\build\net40\System.Data.SQLite.Core.targets'))" />
-    <Error Condition="!Exists('..\packages\Selenium.Chrome.WebDriver.85.0.0\build\Selenium.Chrome.WebDriver.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Selenium.Chrome.WebDriver.85.0.0\build\Selenium.Chrome.WebDriver.targets'))" />
+    <Error Condition="!Exists('..\packages\Selenium.WebDriver.ChromeDriver.87.0.4280.8800\build\Selenium.WebDriver.ChromeDriver.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Selenium.WebDriver.ChromeDriver.87.0.4280.8800\build\Selenium.WebDriver.ChromeDriver.targets'))" />
   </Target>
   <Import Project="..\packages\runtime.win7-x64.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x64.vcruntime140.targets" Condition="Exists('..\packages\runtime.win7-x64.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x64.vcruntime140.targets')" />
   <Import Project="..\packages\runtime.win7-x86.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x86.vcruntime140.targets" Condition="Exists('..\packages\runtime.win7-x86.vcruntime140.14.00.24406.0\build\net40\runtime.win7-x86.vcruntime140.targets')" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.112.2\build\net40\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.112.2\build\net40\System.Data.SQLite.Core.targets')" />
-  <Import Project="..\packages\Selenium.Chrome.WebDriver.85.0.0\build\Selenium.Chrome.WebDriver.targets" Condition="Exists('..\packages\Selenium.Chrome.WebDriver.85.0.0\build\Selenium.Chrome.WebDriver.targets')" />
+  <Import Project="..\packages\Selenium.WebDriver.ChromeDriver.87.0.4280.8800\build\Selenium.WebDriver.ChromeDriver.targets" Condition="Exists('..\packages\Selenium.WebDriver.ChromeDriver.87.0.4280.8800\build\Selenium.WebDriver.ChromeDriver.targets')" />
 </Project>

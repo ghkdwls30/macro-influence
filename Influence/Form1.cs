@@ -532,7 +532,7 @@ namespace Influence
                                     List<IWebElement> elements = driver.FindElements(By.CssSelector("[class^='ChallengeHistory__area_article'] ")).ToList();
                                     elements.Reverse();
                                     element = elements[Int32.Parse(nickKeyowrd.option1) - 1];
-                                    element = element.FindElement(By.CssSelector("[class^='ChallengeContents__card_list_item']"));
+                                    element = element.FindElement(By.CssSelector("[class^='ChallengeContents__root']"));
                                     ScrollAt(element.Location.Y - 200);
                                     element.Click();
                                 }
